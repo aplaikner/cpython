@@ -11332,6 +11332,25 @@ static PyObject *
 os_read_impl(PyObject *module, int fd, Py_ssize_t length)
 /*[clinic end generated code: output=dafbe9a5cddb987b input=1df2eaa27c0bf1d3]*/
 {
+/* 	
+    struct stat statbuffer;
+
+    fstat(fd, &statbuffer);
+
+    if (S_ISFIFO(statbuffer.st_mode)) {
+	const char msg9[] = "PIPE!";
+    	write(STDOUT_FILENO, msg9, sizeof(msg9)-1);
+    }
+*/
+    
+
+    const char msg[] = "Function start!";
+//    write(STDOUT_FILENO, msg, sizeof(msg)-1);
+
+
+    int ps = fcntl(fd, F_GETPIPE_SZ);
+//    write(STDOUT_FILENO, &ps, sizeof(int));
+
     Py_ssize_t n;
     PyObject *buffer;
 
@@ -11342,19 +11361,77 @@ os_read_impl(PyObject *module, int fd, Py_ssize_t length)
 
     length = Py_MIN(length, _PY_READ_MAX);
 
+    struct stat statbuffer;
+    fstat(fd, &statbuffer);
+
+    if (S_ISFIFO(statbuffer.st_mode)) {
+	//Py_ssize_t ps = fcntl(fd, F_GETPIPE_SZ);
+	int ps = fcntl(fd, F_GETPIPE_SZ);
+	printf("Pipe size: %d\n", ps);
+    	//write(STDOUT_FILENO, &ps , sizeof(int));
+	length = Py_MIN(ps, length);
+	printf("length size: %ld\n", length);
+    }
+
+
+
+    const char msg7[] = "Before buffer creation!";
+//    write(STDOUT_FILENO, msg7, sizeof(msg7)-1);
+ 
     buffer = PyBytes_FromStringAndSize((char *)NULL, length);
+    
+   /* 
+    struct stat statbuffer;
+    //int ps = length;
+    fstat(fd, &statbuffer);
+
+    if (S_ISFIFO(statbuffer.st_mode)) {
+	Py_ssize_t ps = fcntl(fd, F_GETPIPE_SZ);
+	int result = madvise(PyBytes_AS_STRING(buffer)-0x30, ps, MADV_POPULATE_WRITE);
+	if(result == -1) {
+		const char msg[] = "madv failed!";
+		write(STDOUT_FILENO, msg, sizeof(msg)-1);
+	} else {
+		const char msg[] = "madv success!";
+		write(STDOUT_FILENO, msg, sizeof(msg)-1);
+	}
+    }
+*/
+
     if (buffer == NULL)
         return NULL;
+    const char msg8[] = "After buffer creation!";
+//    write(STDOUT_FILENO, msg8, sizeof(msg8)-1);
+ 
+    const char msg3[] = "Before read!";
+//    write(STDOUT_FILENO, msg3, sizeof(msg3)-1); 
+
 
     n = _Py_read(fd, PyBytes_AS_STRING(buffer), length);
+	
+    const char msg4[] = "After read!";
+//    write(STDOUT_FILENO, msg4, sizeof(msg4)-1);
+
     if (n == -1) {
         Py_DECREF(buffer);
         return NULL;
     }
 
-    if (n != length)
+    if (n != length) {
+	const char msg5[] = "Before resize!";
+  //      write(STDOUT_FILENO, msg5, sizeof(msg5)-1);
         _PyBytes_Resize(&buffer, n);
+	const char msg6[] = "After resize!";
+  //      write(STDOUT_FILENO, msg6, sizeof(msg6)-1);
+    }
 
+    Py_ssize_t oldsize = PyBytes_GET_SIZE(buffer);
+	printf("buffer size: %ld\n",oldsize);
+//    write(STDOUT_FILENO,&oldsize, sizeof(Py_ssize_t));
+
+
+    const char msg2[] = "Function end!";
+//    write(STDOUT_FILENO, msg2, sizeof(msg2)-1);
     return buffer;
 }
 

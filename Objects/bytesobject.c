@@ -76,6 +76,18 @@ static inline PyObject* bytes_get_empty(void)
 static PyObject *
 _PyBytes_FromSize(Py_ssize_t size, int use_calloc)
 {
+/*
+    const char msg7[] = "Basic size:";
+    write(STDOUT_FILENO, msg7, sizeof(msg7)-1);
+ 
+    int basesize = PyBytesObject_SIZE;
+    write(STDOUT_FILENO, &basesize, sizeof(int));
+
+*/
+
+    // Is 33
+    printf("Base size: %lu\n", PyBytesObject_SIZE);
+
     PyBytesObject *op;
     assert(size >= 0);
 

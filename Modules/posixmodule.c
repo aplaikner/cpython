@@ -11341,17 +11341,18 @@ os_read_impl(PyObject *module, int fd, Py_ssize_t length)
     }
 
     length = Py_MIN(length, _PY_READ_MAX);
-   
-#ifndef MS_WINDOWS
-    static long page_size;
-    if (page_size == 0) 
-        page_size = sysconf(_SC_PAGE_SIZE);
 
+#ifndef MS_WINDOWS
+    /* Can't cache in static variable, since CPython C guidlines
+     * dont' allow non-const static vars. No problem, since constant
+     * can be fetched cheaply using sysconf.
+     */
+    long page_size = sysconf(_SC_PAGE_SIZE);
     if (length > page_size * 16) {
         struct stat statbuffer;
     	fstat(fd, &statbuffer);
     	if (S_ISFIFO(statbuffer.st_mode)) {
-	    length = Py_MIN(page_size* 16, length);
+	    length = page_size* 16;
     	}
     }
 #endif
